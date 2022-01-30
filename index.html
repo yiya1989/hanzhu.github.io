@@ -293,6 +293,95 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/linux_char_dev/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="yiya1989">
+      <meta itemprop="description" content="Good good study,day day up!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="寒竹">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/30/linux_char_dev/" class="post-title-link" itemprop="url">Linux 字符设备驱动开发</a>
+        </h2>
+
+        <div class="post-meta">
+
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-01-30 12:07:11 / 修改时间：12:24:20" itemprop="dateCreated datePublished" datetime="2022-01-30T12:07:11+08:00">2022-01-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87/" itemprop="url" rel="index"><span itemprop="name">字符设备</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <span id="more"></span>
+<h1 id="Linux-字符设备驱动结构"><a href="#Linux-字符设备驱动结构" class="headerlink" title="Linux 字符设备驱动结构"></a>Linux 字符设备驱动结构</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50839042?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-2-50839042.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">cdev 结构体、设备号相关知识解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50849735?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-4-50849735.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">自动创建设备节点</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850004?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-1-50850004.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">file、inode结构体及chardevs数组等相关知识解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850475?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-3-50850475.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">file_operations 结构体知识解析</a></li>
+</ol>
+<h1 id="Linux-字符设备驱动开发基础"><a href="#Linux-字符设备驱动开发基础" class="headerlink" title="Linux 字符设备驱动开发基础"></a>Linux 字符设备驱动开发基础</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850708?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-2-50850708.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">编写简单 LED 设备驱动</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50858776?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-1-50858776.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">编写简单 PWM 设备驱动</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50858946?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-3-50858946.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">read()、write() 相关函数解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859302?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-4-50859302.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">ioctl() 函数解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859505?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-6-50859505.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">ioremap() 函数解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859759?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-5-50859759.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">VFS 虚拟文件系统解析</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
 
@@ -359,20 +448,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -465,10 +554,5 @@
 
   
 
-
-  <!-- calendar widget -->
-
-
-</div>
 </body>
 </html>
