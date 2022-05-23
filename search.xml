@@ -3,7 +3,9 @@
   <entry>
     <title>containerd代码走读</title>
     <url>/2022/05/23/containerd-code-learn/</url>
-    <content><![CDATA[<span id="more"></span>
+    <content><![CDATA[<p>主要走读以下几个部分：containerd启动流程，plugin机制说明，容器启动流程。</p>
+<span id="more"></span>
+
 <h1 id="一-containerd官网介绍"><a href="#一-containerd官网介绍" class="headerlink" title="一. containerd官网介绍"></a>一. containerd官网介绍</h1><p>首先是containerd官网，<a href="https://containerd.io/">https://containerd.io/</a><br>官网有一张containerd架构图，如下<br><img src="https://containerd.io/img/architecture.png" alt="image"><br>关于架构图整体说明，网上有一篇文章【<a href="https://www.qikqiak.com/post/containerd-usage/">一文搞懂容器运行时 Containerd</a>】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。</p>
 <blockquote>
 <p>上图是 containerd 官方提供的架构图，可以看出 containerd 采用的也是 C/S 架构，服务端通过 unix domain socket 暴露低层的 gRPC API 接口出去，客户端通过这些 API 管理节点上的容器，每个 containerd 只负责一台机器，Pull 镜像，对容器的操作（启动、停止等），网络，存储都是由 containerd 完成。具体运行容器由 runc 负责，实际上只要是符合 OCI 规范的容器都可以支持。<br>&emsp;<br>为了解耦，containerd 将系统划分成了不同的组件，每个组件都由一个或多个模块协作完成（Core 部分），每一种类型的模块都以插件的形式集成到 Containerd 中，而且插件之间是相互依赖的，例如，上图中的每一个长虚线的方框都表示一种类型的插件，包括 Service Plugin、Metadata Plugin、GC Plugin、Runtime Plugin 等，其中 Service Plugin 又会依赖 Metadata Plugin、GC Plugin 和 Runtime Plugin。每一个小方框都表示一个细分的插件，例如 Metadata Plugin 依赖 Containers Plugin、Content Plugin 等。</p>

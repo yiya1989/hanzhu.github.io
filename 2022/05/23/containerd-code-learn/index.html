@@ -20,16 +20,16 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="一. containerd官网介绍首先是containerd官网，https:&#x2F;&#x2F;containerd.io&#x2F;官网有一张containerd架构图，如下关于架构图整体说明，网上有一篇文章【一文搞懂容器运行时 Containerd】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。  上图是 containerd 官方提供的架构图，可以">
+  <meta name="description" content="主要走读以下几个部分：containerd启动流程，plugin机制说明，容器启动流程。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="containerd代码走读">
 <meta property="og:url" content="http://example.com/2022/05/23/containerd-code-learn/index.html">
 <meta property="og:site_name" content="寒竹">
-<meta property="og:description" content="一. containerd官网介绍首先是containerd官网，https:&#x2F;&#x2F;containerd.io&#x2F;官网有一张containerd架构图，如下关于架构图整体说明，网上有一篇文章【一文搞懂容器运行时 Containerd】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。  上图是 containerd 官方提供的架构图，可以">
+<meta property="og:description" content="主要走读以下几个部分：containerd启动流程，plugin机制说明，容器启动流程。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://containerd.io/img/architecture.png">
 <meta property="article:published_time" content="2022-05-23T07:05:55.000Z">
-<meta property="article:modified_time" content="2022-05-23T07:31:01.219Z">
+<meta property="article:modified_time" content="2022-05-23T08:25:33.344Z">
 <meta property="article:author" content="yiya1989">
 <meta property="article:tag" content="k8s">
 <meta property="article:tag" content="containerd">
@@ -227,7 +227,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-05-23 15:05:55 / 修改时间：15:31:01" itemprop="dateCreated datePublished" datetime="2022-05-23T15:05:55+08:00">2022-05-23</time>
+              <time title="创建时间：2022-05-23 15:05:55 / 修改时间：16:25:33" itemprop="dateCreated datePublished" datetime="2022-05-23T15:05:55+08:00">2022-05-23</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -254,7 +254,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <span id="more"></span>
+        <p>主要走读以下几个部分：containerd启动流程，plugin机制说明，容器启动流程。</p>
+<span id="more"></span>
+
 <h1 id="一-containerd官网介绍"><a href="#一-containerd官网介绍" class="headerlink" title="一. containerd官网介绍"></a>一. containerd官网介绍</h1><p>首先是containerd官网，<a target="_blank" rel="noopener" href="https://containerd.io/">https://containerd.io/</a><br>官网有一张containerd架构图，如下<br><img src="https://containerd.io/img/architecture.png" alt="image"><br>关于架构图整体说明，网上有一篇文章【<a target="_blank" rel="noopener" href="https://www.qikqiak.com/post/containerd-usage/">一文搞懂容器运行时 Containerd</a>】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。</p>
 <blockquote>
 <p>上图是 containerd 官方提供的架构图，可以看出 containerd 采用的也是 C/S 架构，服务端通过 unix domain socket 暴露低层的 gRPC API 接口出去，客户端通过这些 API 管理节点上的容器，每个 containerd 只负责一台机器，Pull 镜像，对容器的操作（启动、停止等），网络，存储都是由 containerd 完成。具体运行容器由 runc 负责，实际上只要是符合 OCI 规范的容器都可以支持。<br>&emsp;<br>为了解耦，containerd 将系统划分成了不同的组件，每个组件都由一个或多个模块协作完成（Core 部分），每一种类型的模块都以插件的形式集成到 Containerd 中，而且插件之间是相互依赖的，例如，上图中的每一个长虚线的方框都表示一种类型的插件，包括 Service Plugin、Metadata Plugin、GC Plugin、Runtime Plugin 等，其中 Service Plugin 又会依赖 Metadata Plugin、GC Plugin 和 Runtime Plugin。每一个小方框都表示一个细分的插件，例如 Metadata Plugin 依赖 Containers Plugin、Content Plugin 等。</p>
