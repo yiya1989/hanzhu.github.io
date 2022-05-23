@@ -20,30 +20,36 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Good good study,day day up!">
-<meta property="og:type" content="website">
-<meta property="og:title" content="寒竹">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="一. containerd官网介绍首先是containerd官网，https:&#x2F;&#x2F;containerd.io&#x2F;官网有一张containerd架构图，如下关于架构图整体说明，网上有一篇文章【一文搞懂容器运行时 Containerd】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。  上图是 containerd 官方提供的架构图，可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="containerd代码走读">
+<meta property="og:url" content="http://example.com/2022/05/23/containerd-code-learn/index.html">
 <meta property="og:site_name" content="寒竹">
-<meta property="og:description" content="Good good study,day day up!">
+<meta property="og:description" content="一. containerd官网介绍首先是containerd官网，https:&#x2F;&#x2F;containerd.io&#x2F;官网有一张containerd架构图，如下关于架构图整体说明，网上有一篇文章【一文搞懂容器运行时 Containerd】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。  上图是 containerd 官方提供的架构图，可以">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://containerd.io/img/architecture.png">
+<meta property="article:published_time" content="2022-05-23T07:05:55.000Z">
+<meta property="article:modified_time" content="2022-05-23T07:13:04.646Z">
 <meta property="article:author" content="yiya1989">
+<meta property="article:tag" content="k8s">
+<meta property="article:tag" content="containerd">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://containerd.io/img/architecture.png">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2022/05/23/containerd-code-learn/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>寒竹</title>
+  <title>containerd代码走读 | 寒竹</title>
   
 
 
@@ -183,9 +189,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -201,13 +208,9 @@
       <meta itemprop="name" content="寒竹">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-              <span class="post-sticky-flag" title="置顶">
-                <i class="fa fa-thumbtack"></i>
-              </span>
-            <a href="/2022/05/23/containerd-code-learn/" class="post-title-link" itemprop="url">containerd代码走读</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          containerd代码走读
+        </h1>
 
         <div class="post-meta">
 
@@ -251,7 +254,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <span id="more"></span>
+        <span id="more"></span>
 <h1 id="一-containerd官网介绍"><a href="#一-containerd官网介绍" class="headerlink" title="一. containerd官网介绍"></a>一. containerd官网介绍</h1><p>首先是containerd官网，<a target="_blank" rel="noopener" href="https://containerd.io/">https://containerd.io/</a><br>官网有一张containerd架构图，如下<br><img src="https://containerd.io/img/architecture.png" alt="image"><br>关于架构图整体说明，网上有一篇文章【<a target="_blank" rel="noopener" href="https://www.qikqiak.com/post/containerd-usage/">一文搞懂容器运行时 Containerd</a>】写的不错，就直接搬过来了。另外对containerd不太了解的，也可以先看下这篇文章了解下containerd。</p>
 <blockquote>
 <p>上图是 containerd 官方提供的架构图，可以看出 containerd 采用的也是 C/S 架构，服务端通过 unix domain socket 暴露低层的 gRPC API 接口出去，客户端通过这些 API 管理节点上的容器，每个 containerd 只负责一台机器，Pull 镜像，对容器的操作（启动、停止等），网络，存储都是由 containerd 完成。具体运行容器由 runc 负责，实际上只要是符合 OCI 规范的容器都可以支持。<br>&emsp;<br>为了解耦，containerd 将系统划分成了不同的组件，每个组件都由一个或多个模块协作完成（Core 部分），每一种类型的模块都以插件的形式集成到 Containerd 中，而且插件之间是相互依赖的，例如，上图中的每一个长虚线的方框都表示一种类型的插件，包括 Service Plugin、Metadata Plugin、GC Plugin、Runtime Plugin 等，其中 Service Plugin 又会依赖 Metadata Plugin、GC Plugin 和 Runtime Plugin。每一个小方框都表示一个细分的插件，例如 Metadata Plugin 依赖 Containers Plugin、Content Plugin 等。</p>
@@ -354,221 +357,34 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">//services/tasks/service.go:72</span><br><span class="line">func (s *service) Start(ctx context.Context, r *api.StartRequest) (*api.StartResponse, error) &#123;</span><br><span class="line">	return s.local.Start(ctx, r)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//services/tasks/local.go:246</span><br><span class="line">func (l *local) Start(ctx context.Context, r *api.StartRequest, _ ...grpc.CallOption) (*api.StartResponse, error) &#123;</span><br><span class="line">	t, err := l.getTask(ctx, r.ContainerID)</span><br><span class="line">    ...</span><br><span class="line">	p := runtime.Process(t)</span><br><span class="line">    ...</span><br><span class="line">	if err := p.Start(ctx); err != nil &#123;</span><br><span class="line">		return nil, errdefs.ToGRPC(err)</span><br><span class="line">	&#125;</span><br><span class="line">	state, err := p.State(ctx)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, errdefs.ToGRPC(err)</span><br><span class="line">	&#125;</span><br><span class="line">	return &amp;api.StartResponse&#123;</span><br><span class="line">		Pid: state.Pid,</span><br><span class="line">	&#125;, nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//runtime/v2/manager.go:158</span><br><span class="line">// Start launches a new shim instance</span><br><span class="line">func (m *ShimManager) Start(ctx context.Context, id string, opts runtime.CreateOpts) (_ ShimProcess, retErr error) &#123;</span><br><span class="line">	bundle, err := NewBundle(ctx, m.root, m.state, id, opts.Spec.Value)</span><br><span class="line">    ...</span><br><span class="line">	shim, err := m.startShim(ctx, bundle, id, opts)</span><br><span class="line">    ...</span><br><span class="line">	// NOTE: temporarily keep this wrapper around until containerd&#x27;s task service depends on it.</span><br><span class="line">	// This will no longer be required once we migrate to client side task management.</span><br><span class="line">	shimTask := &amp;shimTask&#123;</span><br><span class="line">		shim: shim,</span><br><span class="line">		task: task.NewTaskClient(shim.client),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if err := m.shims.Add(ctx, shimTask); err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;failed to add task: %w&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return shimTask, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="5-4-2-StartContainer执行结束"><a href="#5-4-2-StartContainer执行结束" class="headerlink" title="5.4.2 StartContainer执行结束"></a>5.4.2 <code>StartContainer</code>执行结束</h4><p>至此，一个<code>StartContainer</code>的容器启动流程启动结束。</p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/containerd/" rel="tag"># containerd</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2013/07/13/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="yiya1989">
-      <meta itemprop="description" content="Good good study,day day up!">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="寒竹">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-              <span class="post-sticky-flag" title="置顶">
-                <i class="fa fa-thumbtack"></i>
-              </span>
-            <a href="/2013/07/13/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta">
-
-
-          
-            <i class="fa fa-thumbtack"></i>
-            <font color=7D26CD>置顶</font>
-            <span class="post-meta-divider">|</span>
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2013-07-13 20:46:25" itemprop="dateCreated datePublished" datetime="2013-07-13T20:46:25+08:00">2013-07-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-30 12:31:22" itemprop="dateModified" datetime="2022-01-30T12:31:22+08:00">2022-01-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/Hexo/" itemprop="url" rel="index"><span itemprop="name">Hexo</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Tools/" itemprop="url" rel="index"><span itemprop="name">Tools</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Tools/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Games/" itemprop="url" rel="index"><span itemprop="name">Games</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<p>摘要-HelloWorld</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2013/07/13/hello-world/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/30/linux_char_dev/" rel="prev" title="Linux 字符设备驱动开发">
+      <i class="fa fa-chevron-left"></i> Linux 字符设备驱动开发
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
       </footer>
+    
   </article>
   
   
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/linux_char_dev/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="yiya1989">
-      <meta itemprop="description" content="Good good study,day day up!">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="寒竹">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/01/30/linux_char_dev/" class="post-title-link" itemprop="url">Linux 字符设备驱动开发</a>
-        </h2>
-
-        <div class="post-meta">
-
-
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-01-30 12:07:11 / 修改时间：16:44:18" itemprop="dateCreated datePublished" datetime="2022-01-30T12:07:11+08:00">2022-01-30</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87/" itemprop="url" rel="index"><span itemprop="name">字符设备</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <span id="more"></span>
-<h1 id="Linux-字符设备驱动结构"><a href="#Linux-字符设备驱动结构" class="headerlink" title="Linux 字符设备驱动结构"></a>Linux 字符设备驱动结构</h1><ol>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50839042?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-2-50839042.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">cdev 结构体、设备号相关知识解析</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50849735?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-4-50849735.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">自动创建设备节点</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850004?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-1-50850004.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">file、inode结构体及chardevs数组等相关知识解析</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850475?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164343808116780357251799%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164343808116780357251799&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-3-50850475.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%BB%93%E6%9E%84&spm=1018.2226.3001.4450">file_operations 结构体知识解析</a></li>
-</ol>
-<h1 id="Linux-字符设备驱动开发基础"><a href="#Linux-字符设备驱动开发基础" class="headerlink" title="Linux 字符设备驱动开发基础"></a>Linux 字符设备驱动开发基础</h1><ol>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50850708?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-2-50850708.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">编写简单 LED 设备驱动</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50858776?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-1-50858776.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">编写简单 PWM 设备驱动</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50858946?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-3-50858946.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">read()、write() 相关函数解析</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859302?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-4-50859302.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">ioctl() 函数解析</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859505?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-6-50859505.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">ioremap() 函数解析</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zqixiao_09/article/details/50859759?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164351608716780265482854%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=164351608716780265482854&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-5-50859759.nonecase&utm_term=Linux+%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80&spm=1018.2226.3001.4450">VFS 虚拟文件系统解析</a></li>
-</ol>
-<h1 id="字符驱动完整示例"><a href="#字符驱动完整示例" class="headerlink" title="字符驱动完整示例"></a>字符驱动完整示例</h1><ol>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/lanzhihui_10086/article/details/115446066">file_operations使用示例（实现read/write/ioctl）</a></li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
   
 
 
@@ -621,6 +437,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80-containerd%E5%AE%98%E7%BD%91%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">一. containerd官网介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%EF%BC%8Ccontainerd%E7%BB%84%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="nav-number">2.</span> <span class="nav-text">二，containerd组件版本信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%EF%BC%8Ccontainerd%E4%BB%A3%E7%A0%81%E8%B5%B0%E8%AF%BB"><span class="nav-number">3.</span> <span class="nav-text">三，containerd代码走读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-containerd-main-%E5%87%BD%E6%95%B0"><span class="nav-number">3.1.</span> <span class="nav-text">1. containerd main 函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-command-App%E5%91%BD%E4%BB%A4%E5%85%A5%E5%8F%A3"><span class="nav-number">3.2.</span> <span class="nav-text">2. command.App命令入口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-server-New%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">3.3.</span> <span class="nav-text">3. server.New服务启动过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%8A%A0%E8%BD%BD%E6%8F%92%E4%BB%B6LoadPlugins"><span class="nav-number">3.3.1.</span> <span class="nav-text">3.1 加载插件LoadPlugins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%8F%92%E4%BB%B6%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%8CServer%E5%8A%A0%E8%BD%BD"><span class="nav-number">3.3.2.</span> <span class="nav-text">3.2 插件初始化，Server加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Server%E7%9C%9F%E6%AD%A3%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.3.3.</span> <span class="nav-text">3.3 Server真正初始化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-plugin%E6%9C%BA%E5%88%B6%E8%AF%B4%E6%98%8E"><span class="nav-number">3.4.</span> <span class="nav-text">4. plugin机制说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E6%8F%92%E4%BB%B6%E6%B3%A8%E5%86%8C%E5%87%BD%E6%95%B0"><span class="nav-number">3.4.1.</span> <span class="nav-text">4.1 插件注册函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%B3%A8%E5%86%8C%E6%8F%92%E4%BB%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E5%87%BD%E6%95%B0"><span class="nav-number">3.4.2.</span> <span class="nav-text">4.2 注册插件初始化函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%8F%92%E4%BB%B6%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.4.3.</span> <span class="nav-text">4.3 插件初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6"><span class="nav-number">3.4.4.</span> <span class="nav-text">4.4 如何使用插件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%AE%B9%E5%99%A8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">3.5.</span> <span class="nav-text">5. 容器启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-kubelet%E4%B8%8Econtainerd%E4%BA%A4%E4%BA%92%E6%8E%A5%E5%8F%A3"><span class="nav-number">3.5.1.</span> <span class="nav-text">5.1 kubelet与containerd交互接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-1-kubelet%E5%90%AF%E5%8A%A8"><span class="nav-number">3.5.1.1.</span> <span class="nav-text">5.1.1 kubelet启动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-2-NewRemoteRuntimeService%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.5.1.2.</span> <span class="nav-text">5.1.2 NewRemoteRuntimeService初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-3-CreateContainer%E5%88%86%E6%9E%90"><span class="nav-number">3.5.1.3.</span> <span class="nav-text">5.1.3 CreateContainer分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-3-contaierd%E6%8E%A5%E6%94%B6%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">3.5.1.4.</span> <span class="nav-text">5.1.3 contaierd接收处理逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-4-cri%E4%B8%AD%E6%9C%80%E7%BB%88%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="nav-number">3.5.1.5.</span> <span class="nav-text">5.1.4 cri中最终功能实现函数解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-kubelet%E5%88%9B%E5%BB%BApod%E6%B5%81%E7%A8%8B"><span class="nav-number">3.5.2.</span> <span class="nav-text">5.2 kubelet创建pod流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-cri%E7%9A%84CreateContainer%E8%A7%A3%E6%9E%90"><span class="nav-number">3.5.3.</span> <span class="nav-text">5.3 cri的CreateContainer解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-1-instrumentedAlphaService-CreateContainer"><span class="nav-number">3.5.3.1.</span> <span class="nav-text">5.3.1 instrumentedAlphaService.CreateContainer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-2-criService-CreateContainer"><span class="nav-number">3.5.3.2.</span> <span class="nav-text">5.3.2 criService.CreateContainer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-2-c-client-NewContainer"><span class="nav-number">3.5.3.3.</span> <span class="nav-text">5.3.2 c.client.NewContainer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-3-containersplugin"><span class="nav-number">3.5.3.4.</span> <span class="nav-text">5.3.3 containersplugin</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-4-services-ContainersService%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.5.3.5.</span> <span class="nav-text">5.3.4 services.ContainersService服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-5-metadata-DB%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.5.3.6.</span> <span class="nav-text">5.3.5 metadata.DB服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-5-CreateContainer%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9D%9F"><span class="nav-number">3.5.3.7.</span> <span class="nav-text">5.3.5 CreateContainer执行结束</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-StartContainer"><span class="nav-number">3.5.4.</span> <span class="nav-text">5.4 StartContainer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-1-container-NewTask%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">3.5.4.1.</span> <span class="nav-text">5.4.1 container.NewTask执行流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-1-container-NewTask%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">3.5.4.1.1.</span> <span class="nav-text">5.4.1.1 container.NewTask执行流程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-2-TaskService-Create%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">3.5.4.1.2.</span> <span class="nav-text">5.4.1.2 TaskService().Create执行流程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-3-plugin-RuntimePluginV2-quot-task-quot"><span class="nav-number">3.5.4.1.3.</span> <span class="nav-text">5.4.1.3 plugin.RuntimePluginV2.&quot;task&quot;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-4-ShimManager-Start"><span class="nav-number">3.5.4.1.4.</span> <span class="nav-text">5.4.1.4 ShimManager.Start</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-5-shimTask-Create"><span class="nav-number">3.5.4.1.5.</span> <span class="nav-text">5.4.1.5 shimTask.Create</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-1-6-container-NewTask%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9D%9F"><span class="nav-number">3.5.4.1.6.</span> <span class="nav-text">5.4.1.6 container.NewTask执行结束</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-task-Start%E4%BB%BB%E5%8A%A1%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90"><span class="nav-number">3.5.4.2.</span> <span class="nav-text">5.4.2 task.Start任务启动分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-2-1-TaskService-Start%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-number">3.5.4.2.1.</span> <span class="nav-text">5.4.2.1 TaskService().Start流程分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-4-2-2-TaskService-Start%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-number">3.5.4.2.2.</span> <span class="nav-text">5.4.2.2 TaskService().Start流程分析</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-StartContainer%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9D%9F"><span class="nav-number">3.5.4.3.</span> <span class="nav-text">5.4.2 StartContainer执行结束</span></a></li></ol></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
